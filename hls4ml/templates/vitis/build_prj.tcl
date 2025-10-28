@@ -236,4 +236,12 @@ if {$opt(vsynth)} {
     }
 }
 
+if {$opt(export_xo)} {
+    puts "***** EXPORT XO *****"
+    set time_start [clock clicks -milliseconds]
+    export_design -format xo
+    set time_end [clock clicks -milliseconds]
+    report_time "EXPORT XO" $time_start $time_end
+}
+
 exit
