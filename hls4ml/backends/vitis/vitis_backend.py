@@ -121,15 +121,16 @@ class VitisBackend(VivadoBackend):
             platform,
             "-o",
             xclbin_path,
-            os.path.join(output_dir, f"{model.config.get_project_name()}/solution1/impl/export.xo"),
+            os.path.join(output_dir, f"solution1/impl/export.xo"),
         ]
 
         process = subprocess.Popen(xclbin_command, cwd=output_dir, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         stdout, stderr = process.communicate()
 
         if process.returncode != 0:
+            print(stdout)
             raise Exception(f"xclbin generation failed: {stderr}")
-
+        
         print(f"xclbin file created at {xclbin_path}")
 
     def build(
