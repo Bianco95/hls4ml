@@ -105,6 +105,33 @@ class VitisBackend(VivadoBackend):
 
         return config
 
+    def make_xclbin(self, model, platform):
+        output_dir = model.config.get_output_dir()
+        xclbin_path = os.path.join(output_dir, f"{model.config.get_project_name()}.xclbin")
+
+        print(f"Generating xclbin file for platform {platform}...")
+        print(f".xo file path: {os.path.join(output_dir, f"{model.config.get_project_name()}/solution1/impl/export.xo")}")
+
+        xclbin_command = [
+            'v++',
+            "-l",
+            "-t",
+            "hw",
+            "--platform",
+            platform,
+            "-o",
+            xclbin_path,
+            os.path.join(output_dir, f"{model.config.get_project_name()}/solution1/impl/export.xo"),
+        ]
+
+        process = subprocess.Popen(xclbin_command, cwd=output_dir, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        stdout, stderr = process.communicate()
+
+        if process.returncode != 0:
+            raise Exception(f"xclbin generation failed: {stderr}")
+
+        print(f"xclbin file created at {xclbin_path}")
+
     def build(
         self,
         model,
@@ -118,6 +145,7 @@ class VitisBackend(VivadoBackend):
         fifo_opt=False,
         log_to_stdout=True,
         export_xo=False,
+        export_bitfile=False,
     ):
         if 'linux' in sys.platform:
             found_vrun = os.system('command -v vitis-run > /dev/null') == 0
@@ -163,6 +191,16 @@ class VitisBackend(VivadoBackend):
             if not log_to_stdout:
                 stdout_target.close()
                 stderr_target.close()
+
+        if export_bitfile:
+            try:
+                if self.config.get_board().startswith('alveo'):
+                    self.make_xclbin(model, self.config.get_platform())
+                else:
+                    raise Exception("Bitfile generation is only supported for Alveo boards.")
+            except Exception as e:
+                print(f"Error during bitfile generation: {e}")
+
 
         return parse_vivado_report(output_dir)
 
