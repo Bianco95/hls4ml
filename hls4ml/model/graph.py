@@ -77,6 +77,12 @@ class HLSConfig(Serializable):
 
     def get_project_name(self):
         return self.get_config_value('ProjectName')
+    
+    def get_platform(self):
+        return self.get_config_value('Platform')
+    
+    def get_board(self):
+        return self.get_config_value('Board')
 
     def get_project_dir(self):
         if self.get_config_value('ProjectDir') is not None:
