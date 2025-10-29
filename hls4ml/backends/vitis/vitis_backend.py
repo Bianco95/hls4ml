@@ -194,8 +194,14 @@ class VitisBackend(VivadoBackend):
 
         if export_bitfile:
             try:
-                if model.config.get_board().startswith('alveo'):
-                    self.make_xclbin(model, model.config.get_platform())
+                from hls4ml.backends import VivadoAcceleratorConfig
+
+                vivado_accelerator_config = VivadoAcceleratorConfig(
+                    model.config, model.get_input_variables(), model.get_output_variables()
+                )
+
+                if vivado_accelerator_config.get_board().startswith('alveo'):
+                    self.make_xclbin(model, vivado_accelerator_config.get_platform())
                 else:
                     raise Exception("Bitfile generation is only supported for Alveo boards.")
             except Exception as e:
