@@ -121,7 +121,7 @@ class VitisBackend(VivadoBackend):
             platform,
             "-o",
             xclbin_path,
-            os.path.join(output_dir, f"solution1/impl/export.xo"),
+            "myproject_prj/solution1/impl/export.xo",
         ]
 
         process = subprocess.Popen(xclbin_command, cwd=output_dir, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
