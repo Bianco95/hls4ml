@@ -110,7 +110,7 @@ class VitisBackend(VivadoBackend):
         xclbin_path = os.path.join(output_dir, f"{model.config.get_project_name()}.xclbin")
 
         print(f"Generating xclbin file for platform {platform}...")
-        print(f".xo file path: {os.path.join(output_dir, f"{model.config.get_project_name()}/solution1/impl/export.xo")}")
+        print(f".xo file path: {os.path.join(output_dir, f'{model.config.get_project_name()}/solution1/impl/export.xo')}")
 
         xclbin_command = [
             'v++',
@@ -194,8 +194,8 @@ class VitisBackend(VivadoBackend):
 
         if export_bitfile:
             try:
-                if self.config.get_board().startswith('alveo'):
-                    self.make_xclbin(model, self.config.get_platform())
+                if model.config.get_board().startswith('alveo'):
+                    self.make_xclbin(model, model.config.get_platform())
                 else:
                     raise Exception("Bitfile generation is only supported for Alveo boards.")
             except Exception as e:
