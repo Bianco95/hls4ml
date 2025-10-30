@@ -145,8 +145,8 @@ class VivadoAcceleratorWriter(VivadoWriter):
                     )
                 elif self.vivado_accelerator_config.get_interface() == 'axi_stream':
                     newline = ''
-                    newline += indent + '#pragma HLS INTERFACE axis port=in register_mode=both\n'
-                    newline += indent + '#pragma HLS INTERFACE axis port=out register_mode=both\n'
+                    newline += indent + '#pragma HLS INTERFACE axis port=in\n'
+                    newline += indent + '#pragma HLS INTERFACE axis port=out\n'
                     newline += indent + '#pragma HLS INTERFACE ap_ctrl_none port=return\n'
                     if model.config.get_config_value("IOType") == 'io_stream':
                         newline += indent + '#pragma HLS DATAFLOW\n'

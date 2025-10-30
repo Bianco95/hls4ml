@@ -321,7 +321,6 @@ hls4ml_IP (
   .in_r_TVALID ( ~rd_fifo_tvalid_n ) ,
   .in_r_TREADY ( rd_fifo_tready    ) ,
   .in_r_TDATA  ( rd_fifo_tdata     ) ,
-  .in_r_TLAST  ( rd_fifo_tlast     ) ,
 
   .out_r_TVALID ( NN_inf_tvalid      ) ,
   .out_r_TREADY ( ~NN_inf_tready_n   ) ,
