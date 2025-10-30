@@ -14,7 +14,7 @@ test_root_path = Path(__file__).parent
 def copy_vivado_report(output_dir, test_report_dir):
     # copy pregenerated Vivado reports
     os.makedirs(f'{output_dir}/myproject_prj/solution1/syn/report', exist_ok=True)
-    shutil.copy(test_report_dir / 'vivado_hls.app', f'{output_dir}/myproject_prj/vivado_hls.app')
+    shutil.copy(test_report_dir / 'vitis_hls.app', f'{output_dir}/myproject_prj/vitis_hls.app')
     shutil.copy(
         test_report_dir / 'myproject_csynth.rpt', f'{output_dir}/myproject_prj/solution1/syn/report/myproject_csynth.rpt'
     )

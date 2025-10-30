@@ -34,7 +34,7 @@ typename std::enable_if<CONFIG_T::dims == 2, void>::type transpose(hls::stream<d
     }
 }
 
-// This sfinae is for vivado_hls, which has some overhead using the transfer_idx in io_stream.
+// This sfinae is for vitis_hls, which has some overhead using the transfer_idx in io_stream.
 // In vitis both performs exactly the same, thus this is not removed out of convenience.
 template <typename data_T, typename res_T, typename CONFIG_T>
 typename std::enable_if<CONFIG_T::dims != 2, void>::type transpose(hls::stream<data_T> &data, hls::stream<res_T> &res) {

@@ -55,15 +55,15 @@ def _parse_project_script(path):
 def _find_solutions(sln_dir):
     solutions = []
 
-    if os.path.isfile(sln_dir + '/vivado_hls.app'):
-        sln_file = 'vivado_hls.app'
+    if os.path.isfile(sln_dir + '/vitis_hls.app'):
+        sln_file = 'vitis_hls.app'
     elif os.path.isfile(sln_dir + '/hls.app'):
         sln_file = 'hls.app'
     else:
         return solutions
 
     with open(sln_dir + '/' + sln_file) as f:
-        # Get rid of namespaces (workaround to support two types of vivado_hls.app files)
+        # Get rid of namespaces (workaround to support two types of vitis_hls.app files)
         xmlstring = re.sub(' xmlns="[^"]+"', '', f.read(), count=1)
 
     root = ET.fromstring(xmlstring)

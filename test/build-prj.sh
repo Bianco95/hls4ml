@@ -4,7 +4,7 @@ basedir=hls_prj
 hlsdir=/opt/Xilinx
 hlstool=Vivado
 hlsver=2020.1
-hlscommand=vivado_hls
+hlscommand=vitis_hls
 parallel=1
 
 csim="csim=0"

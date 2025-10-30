@@ -422,7 +422,7 @@ def convert_from_symbolic_expression(
         part (str, optional): The FPGA part. If set to `None` a default part of a backend will be used.
         clock_period (int, optional): Clock period of the design.
             Defaults to 5.
-        compiler (str, optional): Compiler to use, ``vivado_hls`` or ``vitis_hls``. Defaults to ``vivado_hls``.
+        compiler (str, optional): Compiler to use, ``vitis_hls`` or ``vitis_hls``. Defaults to ``vitis_hls``.
         hls_include_path (str, optional): Path to HLS inlcude files. If `None` the location will be inferred from the
             location of the `compiler` used. If an empty string is passed the HLS math libraries won't be used during
             compilation, meaning Python integration won't work unless all functions are LUT-based. Doesn't affect synthesis.

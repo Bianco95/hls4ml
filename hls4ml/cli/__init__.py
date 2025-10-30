@@ -210,16 +210,16 @@ def _build_vivado(args, extra_args):
     if vivado_args.all:
         csim = synth = cosim = validation = export = vsynth = 1
 
-    # Check if vivado_hls is available
+    # Check if vitis_hls is available
     if 'linux' in sys.platform or 'darwin' in sys.platform:
-        found = os.system('command -v vivado_hls > /dev/null')
+        found = os.system('command -v vitis_hls > /dev/null')
         if found != 0:
-            print('Vivado HLS installation not found. Make sure "vivado_hls" is on PATH.')
+            print('Vivado HLS installation not found. Make sure "vitis_hls" is on PATH.')
             sys.exit(1)
 
     os.system(
         (
-            'cd {dir} && vivado_hls -f build_prj.tcl "reset={reset} csim={csim} synth={synth} cosim={cosim} '
+            'cd {dir} && vitis_hls -f build_prj.tcl "reset={reset} csim={csim} synth={synth} cosim={cosim} '
             'validation={validation} export={export} vsynth={vsynth}"'
         ).format(
             dir=args.project,

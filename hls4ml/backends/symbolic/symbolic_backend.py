@@ -44,7 +44,7 @@ class SymbolicExpressionBackend(FPGABackend):
         clock_period=5,
         clock_uncertainty=None,
         io_type='io_parallel',
-        compiler='vivado_hls',
+        compiler='vitis_hls',
         hls_include_path=None,
         hls_libs_path=None,
     ):
@@ -54,9 +54,9 @@ class SymbolicExpressionBackend(FPGABackend):
         config['ClockPeriod'] = clock_period if clock_period is not None else 5
         config['ClockUncertainty'] = clock_uncertainty
         config['IOType'] = io_type if io_type is not None else 'io_parallel'
-        config['Compiler'] = compiler if compiler is not None else 'vivado_hls'
+        config['Compiler'] = compiler if compiler is not None else 'vitis_hls'
         if config['ClockUncertainty'] is None:
-            if config['Compiler'] == 'vivado_hls':
+            if config['Compiler'] == 'vitis_hls':
                 config['ClockUncertainty'] = '12.5%'
             else:
                 config['ClockUncertainty'] = '27%'
@@ -91,14 +91,14 @@ class SymbolicExpressionBackend(FPGABackend):
 
     def build(self, model, reset=False, csim=True, synth=True, cosim=False, validation=False, export=False, vsynth=False):
         if 'linux' in sys.platform:
-            found = os.system('command -v vivado_hls > /dev/null')
+            found = os.system('command -v vitis_hls > /dev/null')
             if found != 0:
-                raise Exception('Vivado HLS installation not found. Make sure "vivado_hls" is on PATH.')
+                raise Exception('Vivado HLS installation not found. Make sure "vitis_hls" is on PATH.')
 
         curr_dir = os.getcwd()
         os.chdir(model.config.get_output_dir())
         vivado_cmd = (
-            f'vivado_hls -f build_prj.tcl "reset={reset} '
+            f'vitis_hls -f build_prj.tcl "reset={reset} '
             f'csim={csim} '
             f'synth={synth} '
             f'cosim={cosim} '

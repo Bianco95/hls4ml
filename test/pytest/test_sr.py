@@ -74,7 +74,7 @@ def test_pysr_luts(data):
 @pytest.mark.parametrize('part', ['some_part', None])
 @pytest.mark.parametrize('clock_period', [8, None])
 @pytest.mark.parametrize('clock_unc', ['15%', None])
-@pytest.mark.parametrize('compiler', ['vivado_hls', 'vitis_hls'])
+@pytest.mark.parametrize('compiler', ['vitis_hls', 'vitis_hls'])
 def test_sr_backend_config(part, clock_period, clock_unc, compiler):
 
     expr = 'x0**2 + 2.5382*cos_lut(x3) - 0.5'
@@ -116,7 +116,7 @@ def test_sr_backend_config(part, clock_period, clock_unc, compiler):
     read_clock_unc = hls_model.config.get_config_value('ClockUncertainty')
     expected_unc = clock_unc
     if expected_unc is None:
-        if compiler == 'vivado_hls':
+        if compiler == 'vitis_hls':
             expected_unc = '12.5%'
         else:
             expected_unc = '27%'

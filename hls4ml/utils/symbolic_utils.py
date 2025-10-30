@@ -167,7 +167,7 @@ def generate_operator_complexity(
             )
             hls_model.write()
             subprocess.run(
-                ['vivado_hls', '-f', 'build_prj.tcl', '"reset=1 synth=1 csim=0 cosim=0 validation=0 export=0"'],
+                ['vitis_hls', '-f', 'build_prj.tcl', '"reset=1 synth=1 csim=0 cosim=0 validation=0 export=0"'],
                 cwd=tmp_dir,
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.STDOUT,
@@ -197,7 +197,7 @@ def generate_operator_complexity(
             )
             hls_model.write()
             subprocess.run(
-                ['vivado_hls', '-f', 'build_prj.tcl', '"reset=1 synth=1 csim=0 cosim=0 validation=0 export=0"'],
+                ['vitis_hls', '-f', 'build_prj.tcl', '"reset=1 synth=1 csim=0 cosim=0 validation=0 export=0"'],
                 cwd=tmp_dir,
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.STDOUT,

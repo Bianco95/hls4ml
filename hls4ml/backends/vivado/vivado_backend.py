@@ -301,14 +301,14 @@ class VivadoBackend(FPGABackend):
         fifo_opt=False,
     ):
         if 'linux' in sys.platform:
-            found = os.system('command -v vivado_hls > /dev/null')
+            found = os.system('command -v vitis_hls > /dev/null')
             if found != 0:
-                raise Exception('Vivado HLS installation not found. Make sure "vivado_hls" is on PATH.')
+                raise Exception('Vivado HLS installation not found. Make sure "vitis_hls" is on PATH.')
 
         curr_dir = os.getcwd()
         os.chdir(model.config.get_output_dir())
         vivado_cmd = (
-            f'vivado_hls -f build_prj.tcl "reset={reset} '
+            f'vitis_hls -f build_prj.tcl "reset={reset} '
             f'csim={csim} '
             f'synth={synth} '
             f'cosim={cosim} '
