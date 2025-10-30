@@ -157,8 +157,9 @@ class VivadoAcceleratorWriter(VivadoWriter):
                     newline += indent + 'for(unsigned i = 0; i < N_IN; i++){\n'
                     if self.vivado_accelerator_config.get_interface() == 'axi_stream':
                         newline += indent + indent + '#pragma HLS PIPELINE\n'
-                        newline += indent + indent + 'in_local[i] = in[i].data; // Read input with cast\n'
-                        newline += indent + indent + 'is_last |= (in[i].last == 1)? true: false;\n'
+                        newline += indent + indent + 'input_axi_t tmp = in[i]; // Single read of entire struct\n'
+                        newline += indent + indent + 'in_local[i] = tmp.data; // Read input with cast\n'
+                        newline += indent + indent + 'is_last |= (tmp.last == 1)? true: false;\n'
                     else:
                         newline += indent + indent + '#pragma HLS UNROLL\n'
                         newline += indent + indent + 'in_local[i] = in[i]; // Read input with cast\n'
@@ -176,10 +177,16 @@ class VivadoAcceleratorWriter(VivadoWriter):
                             indent
                             + indent
                             + indent
-                            + 'ctype[j] = typename {input_t}::value_type(in[i * {input_t}::size + j].data);\n'
+                            + 'input_axi_t tmp = in[i * {input_t}::size + j]; // Single read of entire struct\n'
                         )
                         newline += (
-                            indent + indent + indent + 'is_last |= (in[i * input_t::size + j].last == 1)? true : false;\n'
+                            indent
+                            + indent
+                            + indent
+                            + 'ctype[j] = typename {input_t}::value_type(tmp.data);\n'
+                        )
+                        newline += (
+                            indent + indent + indent + 'is_last |= (tmp.last == 1)? true : false;\n'
                         )
                     else:
                         newline += (
@@ -199,8 +206,10 @@ class VivadoAcceleratorWriter(VivadoWriter):
                     newline += indent + 'for(unsigned i = 0; i < N_OUT; i++){\n'
                     if self.vivado_accelerator_config.get_interface() == 'axi_stream':
                         newline += indent + indent + '#pragma HLS PIPELINE\n'
-                        newline += indent + indent + 'out[i].data = out_local[i]; // Write output with cast\n'
-                        newline += indent + indent + 'out[i].last = (is_last && (i == N_OUT - 1))? true : false;\n'
+                        newline += indent + indent + 'output_axi_t tmp; // Build struct first\n'
+                        newline += indent + indent + 'tmp.data = out_local[i]; // Write output with cast\n'
+                        newline += indent + indent + 'tmp.last = (is_last && (i == N_OUT - 1))? true : false;\n'
+                        newline += indent + indent + 'out[i] = tmp; // Single write of entire struct\n'
                     else:
                         newline += indent + indent + '#pragma HLS UNROLL\n'
                         newline += indent + indent + 'out[i] = out_local[i]; // Write output with cast\n'
@@ -217,10 +226,22 @@ class VivadoAcceleratorWriter(VivadoWriter):
                             indent
                             + indent
                             + indent
-                            + 'bool last = (is_last && (i * {result_t}::size + j == N_OUT - 1)) ? true : false;\n'
+                            + 'output_axi_t tmp; // Build struct first\n'
                         )
                         newline += (
-                            indent + indent + indent + 'out[i * {result_t}::size + j] = output_axi_t(ctype[j], last);\n'
+                            indent
+                            + indent
+                            + indent
+                            + 'tmp.data = ctype[j];\n'
+                        )
+                        newline += (
+                            indent
+                            + indent
+                            + indent
+                            + 'tmp.last = (is_last && (i * {result_t}::size + j == N_OUT - 1)) ? true : false;\n'
+                        )
+                        newline += (
+                            indent + indent + indent + 'out[i * {result_t}::size + j] = tmp; // Single write of entire struct\n'
                         )
                     else:
                         newline += indent + indent + indent + 'out[i * {result_t}::size + j] = output_axi_t(ctype[j]);\n'
