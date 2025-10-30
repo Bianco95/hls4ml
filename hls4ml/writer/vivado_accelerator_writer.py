@@ -1,5 +1,6 @@
 import os
-from shutil import copyfile, copytree
+from distutils.dir_util import copy_tree
+from shutil import copyfile
 
 from hls4ml.writer.vivado_writer import VivadoWriter
 
@@ -157,8 +158,9 @@ class VivadoAcceleratorWriter(VivadoWriter):
                     newline += indent + 'for(unsigned i = 0; i < N_IN; i++){\n'
                     if self.vivado_accelerator_config.get_interface() == 'axi_stream':
                         newline += indent + indent + '#pragma HLS PIPELINE\n'
-                        newline += indent + indent + 'in_local[i] = in[i].data; // Read input with cast\n'
-                        newline += indent + indent + 'is_last |= (in[i].last == 1)? true: false;\n'
+                        newline += indent + indent + 'input_axi_t tmp = in[i]; // Single read of entire struct\n'
+                        newline += indent + indent + 'in_local[i] = tmp.data; // Read input with cast\n'
+                        newline += indent + indent + 'is_last |= (tmp.last == 1)? true: false;\n'
                     else:
                         newline += indent + indent + '#pragma HLS UNROLL\n'
                         newline += indent + indent + 'in_local[i] = in[i]; // Read input with cast\n'
@@ -176,10 +178,16 @@ class VivadoAcceleratorWriter(VivadoWriter):
                             indent
                             + indent
                             + indent
-                            + 'ctype[j] = typename {input_t}::value_type(in[i * {input_t}::size + j].data);\n'
+                            + 'input_axi_t tmp = in[i * {input_t}::size + j]; // Single read of entire struct\n'
                         )
                         newline += (
-                            indent + indent + indent + 'is_last |= (in[i * input_t::size + j].last == 1)? true : false;\n'
+                            indent
+                            + indent
+                            + indent
+                            + 'ctype[j] = typename {input_t}::value_type(tmp.data);\n'
+                        )
+                        newline += (
+                            indent + indent + indent + 'is_last |= (tmp.last == 1)? true : false;\n'
                         )
                     else:
                         newline += (
@@ -199,8 +207,10 @@ class VivadoAcceleratorWriter(VivadoWriter):
                     newline += indent + 'for(unsigned i = 0; i < N_OUT; i++){\n'
                     if self.vivado_accelerator_config.get_interface() == 'axi_stream':
                         newline += indent + indent + '#pragma HLS PIPELINE\n'
-                        newline += indent + indent + 'out[i].data = out_local[i]; // Write output with cast\n'
-                        newline += indent + indent + 'out[i].last = (is_last && (i == N_OUT - 1))? true : false;\n'
+                        newline += indent + indent + 'output_axi_t tmp; // Build struct first\n'
+                        newline += indent + indent + 'tmp.data = out_local[i]; // Write output with cast\n'
+                        newline += indent + indent + 'tmp.last = (is_last && (i == N_OUT - 1))? true : false;\n'
+                        newline += indent + indent + 'out[i] = tmp; // Single write of entire struct\n'
                     else:
                         newline += indent + indent + '#pragma HLS UNROLL\n'
                         newline += indent + indent + 'out[i] = out_local[i]; // Write output with cast\n'
@@ -217,10 +227,22 @@ class VivadoAcceleratorWriter(VivadoWriter):
                             indent
                             + indent
                             + indent
-                            + 'bool last = (is_last && (i * {result_t}::size + j == N_OUT - 1)) ? true : false;\n'
+                            + 'output_axi_t tmp; // Build struct first\n'
                         )
                         newline += (
-                            indent + indent + indent + 'out[i * {result_t}::size + j] = output_axi_t(ctype[j], last);\n'
+                            indent
+                            + indent
+                            + indent
+                            + 'tmp.data = ctype[j];\n'
+                        )
+                        newline += (
+                            indent
+                            + indent
+                            + indent
+                            + 'tmp.last = (is_last && (i * {result_t}::size + j == N_OUT - 1)) ? true : false;\n'
+                        )
+                        newline += (
+                            indent + indent + indent + 'out[i * {result_t}::size + j] = tmp; // Single write of entire struct\n'
                         )
                     else:
                         newline += indent + indent + indent + 'out[i * {result_t}::size + j] = output_axi_t(ctype[j]);\n'
@@ -304,10 +326,14 @@ class VivadoAcceleratorWriter(VivadoWriter):
             elif f'{model.config.get_project_name()}(' in line:
                 indent_amount = line.split(model.config.get_project_name())[0]
                 newline = indent_amount + f'{model.config.get_project_name()}_axi(inputs,outputs);\n'
-            elif inp.name in line or inp.type.name in line:
-                newline = line.replace(inp.name, 'inputs').replace(inp.type.name, 'input_axi_t')
-            elif out.name in line or out.type.name in line:
-                newline = line.replace(out.name, 'outputs').replace(out.type.name, 'output_axi_t')
+            elif inp.size_cpp() in line or inp.name in line or inp.type.name in line:
+                newline = (
+                    line.replace(inp.size_cpp(), 'N_IN').replace(inp.name, 'inputs').replace(inp.type.name, 'input_axi_t')
+                )
+            elif out.size_cpp() in line or out.name in line or out.type.name in line:
+                newline = (
+                    line.replace(out.size_cpp(), 'N_OUT').replace(out.name, 'outputs').replace(out.type.name, 'output_axi_t')
+                )
             else:
                 newline = line
             if self.vivado_accelerator_config.get_interface() == 'axi_stream':
@@ -346,10 +372,10 @@ class VivadoAcceleratorWriter(VivadoWriter):
                 newline = indent_amount + '{}_axi({}_ap,{}_ap);\n'.format(
                     model.config.get_project_name(), inp.name, out.name
                 )
-            elif inp.type.name in line:
-                newline = line.replace(inp.type.name, 'input_axi_t')
-            elif out.type.name in line:
-                newline = line.replace(out.type.name, 'output_axi_t')
+            elif inp.size_cpp() in line or inp.name in line or inp.type.name in line:
+                newline = line.replace(inp.size_cpp(), 'N_IN').replace(inp.type.name, 'input_axi_t')
+            elif out.size_cpp() in line or out.name in line or out.type.name in line:
+                newline = line.replace(out.size_cpp(), 'N_OUT').replace(out.type.name, 'output_axi_t')
             else:
                 newline = line
             fout.write(newline)
@@ -371,7 +397,7 @@ class VivadoAcceleratorWriter(VivadoWriter):
         if self.vivado_accelerator_config.get_board().startswith('alveo'):
             src_dir = os.path.join(filedir, self.vivado_accelerator_config.get_krnl_rtl_src_dir())
             dst_dir = os.path.abspath(model.config.get_output_dir()) + '/src'
-            copytree(src_dir, dst_dir, dirs_exist_ok=True)
+            copy_tree(src_dir, dst_dir)
 
         ###################
         # project.tcl
@@ -389,8 +415,6 @@ class VivadoAcceleratorWriter(VivadoWriter):
         f.write('set clock_uncertainty {}\n'.format(model.config.get_config_value('ClockUncertainty', '12.5%')))
         f.write('variable version\n')
         f.write('set version "{}"\n'.format(model.config.get_config_value('Version', '1.0.0')))
-        f.write('variable maximum_size\n')
-        f.write('set maximum_size {}\n'.format(model.config.get_config_value('MaximumSize', '4096')))
         if self.vivado_accelerator_config.get_interface() == 'axi_stream':
             in_bit, out_bit = self.vivado_accelerator_config.get_io_bitwidth()
             f.write(f'set bit_width_hls_output {in_bit}\n')
