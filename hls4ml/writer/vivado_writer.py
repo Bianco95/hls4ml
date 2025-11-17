@@ -80,7 +80,7 @@ class VivadoWriter(Writer):
             os.makedirs(f"{model.config.get_output_dir()}/firmware/weights")
 
     @staticmethod
-    def _make_array_pragma(self, variable):
+    def _make_array_pragma(variable):
         """Generate the ARRAY_PARTITION or ARRAY_RESHAPE pragma"""
         config = variable.pragma
         if type(config) is tuple:
