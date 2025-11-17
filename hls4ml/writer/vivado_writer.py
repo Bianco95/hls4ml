@@ -80,14 +80,8 @@ class VivadoWriter(Writer):
             os.makedirs(f"{model.config.get_output_dir()}/firmware/weights")
 
     @staticmethod
-    def _make_array_pragma(variable):
-        """
-        Layers in hls_model.py can specify output array partitioning through the `pragma` attribute.
-        If `pragma` is a string: options are 'partition', 'reshape', or 'stream'.
-        If `pragma` is a tuple: (mode, type, factor) where mode is 'partition' or 'reshape', type is
-        'complete', 'cyclic', or 'block', and factor is an integer only used when the type is not 'complete'.
-        """
-
+    def _make_array_pragma(self, variable):
+        """Generate the ARRAY_PARTITION or ARRAY_RESHAPE pragma"""
         config = variable.pragma
         if type(config) is tuple:
             mode = config[0]
@@ -110,8 +104,6 @@ class VivadoWriter(Writer):
 
             return template.format(mode=mode.upper(), name=variable.name, type=typ, factor=factor, dim=0)
 
-        elif mode == 'stream':
-            return f'#pragma HLS STREAM variable={variable.name} depth={depth}'
 
     def write_project_cpp(self, model):
         """Write the main architecture source file (myproject.cpp)
