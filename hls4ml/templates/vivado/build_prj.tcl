@@ -161,7 +161,7 @@ if {$opt(reset)} {
 } else {
     open_solution "solution1"
 }
-catch {config_array_partition -complete_threshold 128}
+catch {}
 config_compile -name_max_length 80
 set_part $part
 config_schedule -enable_dsp_full_reg=false
